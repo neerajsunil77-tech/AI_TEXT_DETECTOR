@@ -1,0 +1,9 @@
+streamlit
+pillow
+pytesseract
+requests
+beautifulsoup4
+scikit-learn
+pandas
+joblib
+ddgs
