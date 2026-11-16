@@ -47,9 +47,18 @@ st.set_page_config(
 )
 
 # Tesseract OCR location
-pytesseract.pytesseract.tesseract_cmd = (
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-)
+# Tesseract OCR location (Windows and Streamlit Cloud)
+import os
+import shutil
+
+if os.name == "nt":
+    pytesseract.pytesseract.tesseract_cmd = (
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    )
+else:
+    pytesseract.pytesseract.tesseract_cmd = (
+        shutil.which("tesseract") or "/usr/bin/tesseract"
+    )
 
 # --------------------------------------------------
 # SESSION STATE
