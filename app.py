@@ -13,8 +13,7 @@ from bs4 import BeautifulSoup
 from PIL import Image, ImageOps, ImageEnhance
 
 import pytesseract
-import easyocr
-import numpy as np
+
 
 from ddgs import DDGS
 
@@ -39,11 +38,6 @@ def load_authorship_model():
 
 
 authorship_model = load_authorship_model()
-@st.cache_resource
-def load_easyocr_reader():
-    return easyocr.Reader(['en'], gpu=False)
-
-ocr_reader = load_easyocr_reader()
 
 
 def predict_authorship(text):
@@ -237,7 +231,6 @@ with tab1:
 # --------------------------------------------------
 
 
-
 with tab2:
 
     uploaded_image = st.file_uploader(
@@ -255,52 +248,32 @@ with tab2:
             width=450
         )
 
-        ocr_method = st.radio(
-            "Choose text recognition method:",
-            [
-                "Tesseract (printed text)",
-                "EasyOCR (try handwriting)"
-            ]
-        )
-
         if st.button("Extract Text From Image"):
 
             try:
 
                 with st.spinner("Reading image..."):
 
-                    if ocr_method == "EasyOCR (try handwriting)":
+                    processed_image = ImageOps.grayscale(image)
 
-                        results = ocr_reader.readtext(
-                            np.array(image),
-                            detail=0,
-                            paragraph=True
-                        )
+                    processed_image = ImageOps.autocontrast(
+                        processed_image
+                    )
 
-                        extracted_text = "\n".join(results)
+                    width, height = processed_image.size
 
-                    else:
+                    processed_image = processed_image.resize(
+                        (width * 2, height * 2)
+                    )
 
-                        processed_image = ImageOps.grayscale(image)
+                    processed_image = ImageEnhance.Contrast(
+                        processed_image
+                    ).enhance(1.5)
 
-                        processed_image = ImageOps.autocontrast(
-                            processed_image
-                        )
-
-                        width, height = processed_image.size
-
-                        processed_image = processed_image.resize(
-                            (width * 2, height * 2)
-                        )
-
-                        processed_image = ImageEnhance.Contrast(
-                            processed_image
-                        ).enhance(1.5)
-
-                        extracted_text = pytesseract.image_to_string(
-                            processed_image,
-                            config="--oem 3 --psm 6"
-                        )
+                    extracted_text = pytesseract.image_to_string(
+                        processed_image,
+                        config="--oem 3 --psm 6"
+                    )
 
                 if extracted_text.strip():
 
